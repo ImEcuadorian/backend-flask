@@ -13,19 +13,26 @@ CORS(app, origins="*")
 with app.app_context():
     db.create_all()
 
-
 @app.route('/login', methods=['POST'])
 def login():
-    data = request.get_json()
-    user = User.query.filter_by(email=data['email']).first()
-    rol = user.rol
+    data = request.get_json() or {}
+    email = data.get('email')
+    pwd   = data.get('password')
 
-    if user and data['password'] == user.password:
-        return jsonify({
-            'message': 'Inicio de sesión exitoso',
-            'rol': rol
-        }), 200
-    return jsonify({"error": "Credenciales inválidas"}), 401
+    if not email or not pwd:
+        return jsonify({'error': 'Email y contraseña son requeridos'}), 400
+
+    user = User.query.filter_by(email=email).first()
+
+    if not user or user.password != pwd:
+        return jsonify({'error': 'Credenciales inválidas'}), 401
+
+    return jsonify({
+        'message': 'Inicio de sesión exitoso',
+        'rol':     user.rol,
+        'id':      user.id
+    }), 200
+
 
 
 if __name__ == '__main__':

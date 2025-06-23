@@ -48,6 +48,27 @@ services:
     depends_on:
       - db
 
+  db_auth:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: authuser
+      POSTGRES_PASSWORD: authpass
+      POSTGRES_DB: authdb
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_data_auth:/var/lib/postgresql/data
+
+  auth-google:
+    build: ./auth-google
+    ports:
+      - "5003:5003"
+    environment:
+      DATABASE_URL: postgresql://authuser:authpass@db_auth:5432/authdb
+    depends_on:
+      - db_auth
+
 volumes:
   postgres_data:
   postgres_data2:
+  postgres_data_auth:
